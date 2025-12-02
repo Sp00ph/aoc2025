@@ -9,11 +9,11 @@ use seq_macro::seq;
 
 type PartFn = fn(&str) -> String;
 
-seq!(N in 1..=25 {
+seq!(N in 1..=12 {
     #(mod day~N;)*
 
     #[used]
-    static FNS: [[PartFn; 2]; 25] = [
+    static FNS: [[PartFn; 2]; 12] = [
         #(
             [day~N::part1, day~N::part2],
         )*

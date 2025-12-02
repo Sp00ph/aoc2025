@@ -35,6 +35,6 @@ async def main():
                 await f.write(input)
 
     async with aiohttp.ClientSession() as session:
-        await asyncio.gather(*[download_input_for_day(day, session) for day in range(1, 26)])
+        await asyncio.gather(*[download_input_for_day(day, session) for day in range(1, 13)])
 
 asyncio.run(main())
