@@ -29,6 +29,7 @@ async def main():
         path = pathlib.Path(f"input/day{day}.txt")
         if path.exists() or datetime.date(year, 12, day) > today:
             return
+        print(f"Downloading day {day}")
         async with session.get(url, headers=headers, ssl=sslcontext) as response:
             input = await response.text()
             async with aiofiles.open(path, "w") as f:
