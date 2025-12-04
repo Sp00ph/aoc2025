@@ -1,21 +1,23 @@
-fn joltage(input: &[u8], digits: usize) -> u64 {
-    let n = input.len();
+fn joltage(mut input: &[u8], digits: usize) -> u64 {
+    let mut res = 0u64;
 
-    let mut prev = vec![0u64; n + 1];
-    let mut next = vec![0u64; n + 1];
+    for d in (0..digits).rev() {
+        // The fold here is essentially a max that returns
+        // the first instead of the last occurrence.
+        let i = input[..input.len() - d]
+            .iter()
+            .copied()
+            .enumerate()
+            .fold(
+                (0, 0),
+                |acc, entry| if entry.1 > acc.1 { entry } else { acc },
+            )
+            .0;
+        res = res * 10 + input[i] as u64;
+        input = &input[i + 1..];
+    }
 
-    (0..digits).for_each(|_d| {
-        // Loop invariant: `prev[i]` contains the maximum joltage achievable
-        // using exactly d of the first i input digits.
-
-        for i in 0..n {
-            next[i + 1] = next[i].max(prev[i] * 10 + input[i] as u64);
-        }
-
-        std::mem::swap(&mut prev, &mut next);
-    });
-
-    prev[n]
+    res
 }
 
 pub fn part1(input: &str) -> String {
