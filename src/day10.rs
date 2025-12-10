@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use arrayvec::ArrayVec;
 use itertools::Itertools;
-use z3::{Optimize, SatResult, ast::Int};
+use microlp::{OptimizationDirection, Problem};
 
 // We use `u16` as a bitset storing indicator light information.
 // It seems like there are <=10 lights per row in my input, so
@@ -96,32 +96,24 @@ pub fn part2(input: &str) -> String {
     let mut res = 0;
 
     for machine in machines {
-        let x = (0..machine.transition_lists.len())
-            .map(|i| Int::new_const(i as u32))
-            .collect_vec();
+        let mut problem = Problem::new(OptimizationDirection::Minimize);
 
-        let opt = Optimize::new();
-        x.iter().for_each(|term| opt.assert(&term.ge(0)));
-
-        let obj = Int::add(&x);
+        let x = (0..machine.transition_lists.len()).map(|_| problem.add_integer_var(1.0, (0, i32::MAX))).collect_vec();
 
         for light in 0..machine.num_lights {
             let rhs = machine.joltage_reqs[light as usize];
-            let mut lhs = Int::from_i64(0);
+            let mut constraint = vec![];
             for (i, t) in machine.transition_lists.iter().enumerate() {
                 if t.contains(&light) {
-                    lhs = Int::add(&[lhs, x[i].clone()])
+                    constraint.push((x[i], 1.0))
                 }
             }
 
-            opt.assert(&lhs.eq(rhs));
+            problem.add_constraint(&constraint, microlp::ComparisonOp::Eq, rhs as _);
         }
 
-        opt.minimize(&obj);
-
-        assert_eq!(opt.check(&[]), SatResult::Sat);
-        let model = opt.get_model().unwrap();
-        res += model.eval(&obj, true).unwrap().as_u64().unwrap();
+        let solution = problem.solve().unwrap();
+        res += solution.objective().round() as u64;
     }
 
     res.to_string()
